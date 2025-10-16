@@ -1,5 +1,5 @@
 Plecs {
-  Name          "Boost_Converter"
+  Name          "Combined_Converter_Baley"
   Version       "4.9"
   CircuitModel  "ContStateSpace"
   StartTime     "0.0"
@@ -54,7 +54,7 @@ Plecs {
   ScriptsDialogSplitterPos "0"
   Schematic {
     Location      [0, 28; 1920, 1159]
-    ZoomFactor    1.49863
+    ZoomFactor    1.14436
     SliderPosition [0, 0]
     ShowBrowser   off
     BrowserWidth  100
@@ -245,7 +245,7 @@ Plecs {
       Type          Voltmeter
       Name          "Vm1"
       Show          on
-      Position      [350, 140]
+      Position      [340, 140]
       Direction     up
       Flipped       off
       LabelPosition west
@@ -1182,8 +1182,8 @@ Plecs {
 "BAAAAAQAAAAIAAAACPwAAAABAAAAAgAAAAEAAAAOAFQAbwBvAGwAQgBhAHIBAAAAAP////8AAAAAA"
 "AAAAA=="
       SavedViews    "AAAAAgAAAAA="
-      HeaderState   "{\"DefaultSecSize\":0,\"FirstSecSize\":177,\"Labels\":[],"
-"\"VisualIdxs\":[]}"
+      HeaderState   "{\"DefaultSecSize\":100,\"FirstSecSize\":177,\"Labels\":["
+"\"Delta\"],\"VisualIdxs\":[3]}"
       PlotPalettes  "AAAAAQAAAAEAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
       Axes          "1"
       TimeRange     "0.0"
@@ -1435,7 +1435,6 @@ Plecs {
           DstTerminal   1
         }
         Branch {
-          Points        [340, 110; 350, 110]
           DstComponent  "Vm1"
           DstTerminal   1
         }
@@ -1456,7 +1455,6 @@ Plecs {
             DstTerminal   2
           }
           Branch {
-            Points        [340, 175; 350, 175]
             DstComponent  "Vm1"
             DstTerminal   2
           }
