@@ -1,0 +1,304 @@
+#+title: ENG306 - Power Electronics - Project
+#+AUTHOR: Baley Eccles - 652137 and Tyler Robards - 651790
+#+STARTUP: latexpreview
+
+* Fix 12V output
+Change R18, R17, R16 and  Rb16.
+ - See 8.3.21 in datasheet for calculations
+\[\frac{R_{FB2}}{R_{FB1}} = \frac{V_{out}}{0.8} - 1\]
+\[\frac{R_{FB2}}{R_{FB1}} = \frac{12}{0.8} - 1 = 14\]
+
+In our circuit
+\[R_{FB2} = 22 + 4700 = 4722\]
+\[R_{FB1} = 470 || 2200 = 387.27\]
+
+\[\frac{R_{FB2}}{R_{FB1}} = \frac{4722}{387.27} = 12.183\]
+Solving $12.183 = \frac{V_{out}}{0.8} - 1$ we get $V_{out} = 10.554$, which is what we were seeing on the output.
+
+We should remove R16 and replace it with the following
+\[\frac{4722}{R_{FB1}} = \frac{12}{0.8} - 1\]
+\[R_{FB1} = \frac{4722}{\frac{12}{0.8} - 1} = 337.285\]
+
+\[R_{FB1} = R16 || 2200 = 337.285\]
+\[337.285 = 1/(1/R16 + 1/2200)\]
+\[\Rightarrow R16 = 398.358 769\Omega \]
+
+\[R16 \approx 400\Omega\]
+If we choose this, then:
+\[\frac{R_{FB2}}{R_{FB1}} = \frac{4722}{400 || 2200} = \frac{V_{out}}{0.8} - 1\]
+\[\Rightarrow V_{out} = 11.961\]
+
+This may be good enough, but if it isn't we can remove Rb16 too and choose:
+
+#+BEGIN_SRC octave :exports none :results output :session Feedback
+clc;
+clear;
+close all;
+
+R_18 = 22.4;
+R_17 = 4.345e3;
+R_FB1 = 338.7;
+
+V_out = 12;
+
+R_FB2 = R_17 + R_18;
+
+R_FB1 = R_FB2/(V_out/0.8 - 1);
+
+% Add actual avalible resistors to R_vals
+R_vals = [0, 1e3, 10e3, 1, 1.2, 1.5, 2, 2.7, 3.3, 4.3, 5.1, 6.8, 8.2, 10, 12, 15, 20, 27, 33, 43, 51, 68, 82, 100, 120, 150, 200, 270, 330, 430, 510, 680, 820, 1.2e3, 1.5e3, 2e3, 2.7e3, 3.3e3, 4.3e3, 5.1e3, 6.8e3, 8.2e3, 12e3, 15e3, 20e3, 27e3, 33e3, 43e3, 51e3, 68e3, 82e3, 100e3, 120e3, 150e3, 200e3, 270e3, 330e3, 430e3, 510e3, 680e3, 820e3, 1e6, 2e6];
+
+R16 = R_vals;
+
+Rb16 = 1./(1./R_FB1 - 1./R16);
+
+% May need to change tolerance
+tol = 5/100; % Tolerance of 5%
+
+for idx = 1:length(R16)
+  for jdx = 1:length(R_vals)
+    up_bound = R_vals(jdx) + R_vals(jdx)*tol;
+    low_bound = R_vals(jdx) - R_vals(jdx)*tol;
+    if (Rb16(idx) >= low_bound && Rb16(idx) <= up_bound)
+      percent_error = 100*abs(R_vals(jdx) - Rb16(idx))/Rb16(idx);
+      V_out_true = 0.8*(R_FB2/(1/(1/R16(idx) + 1/R_vals(jdx))) + 1);
+      
+      sprintf("For a resistor error of %f%% choose:", percent_error)
+      sprintf("R16 = %f and ideally Rb16 = %f, but select Rb16 = %f from the resistor book. This will give an output voltage of %f", R16(idx), Rb16(idx), R_vals(jdx), V_out_true)
+      
+    end
+  end
+end
+
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+ans = For a resistor error of NaN% choose:
+ans = R16 = 0.000000 and ideally Rb16 = -0.000000, but select Rb16 = 0.000000 from the resistor book. This will give an output voltage of Inf
+ans = For a resistor error of 2.483762% choose:
+ans = R16 = 10000.000000 and ideally Rb16 = 322.002233, but select Rb16 = 330.000000 from the resistor book. This will give an output voltage of 11.737028
+ans = For a resistor error of 2.072306% choose:
+ans = R16 = 510.000000 and ideally Rb16 = 803.352088, but select Rb16 = 820.000000 from the resistor book. This will give an output voltage of 11.911702
+ans = For a resistor error of 1.288873% choose:
+ans = R16 = 820.000000 and ideally Rb16 = 503.510390, but select Rb16 = 510.000000 from the resistor book. This will give an output voltage of 11.911702
+ans = For a resistor error of 2.006113% choose:
+ans = R16 = 1200.000000 and ideally Rb16 = 421.543362, but select Rb16 = 430.000000 from the resistor book. This will give an output voltage of 11.836995
+ans = For a resistor error of 4.216238% choose:
+ans = R16 = 3300.000000 and ideally Rb16 = 344.526040, but select Rb16 = 330.000000 from the resistor book. This will give an output voltage of 12.446400
+ans = For a resistor error of 1.890657% choose:
+ans = R16 = 4300.000000 and ideally Rb16 = 336.359403, but select Rb16 = 330.000000 from the resistor book. This will give an output voltage of 12.200176
+ans = For a resistor error of 0.686827% choose:
+ans = R16 = 5100.000000 and ideally Rb16 = 332.282203, but select Rb16 = 330.000000 from the resistor book. This will give an output voltage of 12.072719
+ans = For a resistor error of 0.930820% choose:
+ans = R16 = 6800.000000 and ideally Rb16 = 326.956621, but select Rb16 = 330.000000 from the resistor book. This will give an output voltage of 11.901448
+ans = For a resistor error of 1.759371% choose:
+ans = R16 = 8200.000000 and ideally Rb16 = 324.294457, but select Rb16 = 330.000000 from the resistor book. This will give an output voltage of 11.813724
+ans = For a resistor error of 3.033762% choose:
+ans = R16 = 12000.000000 and ideally Rb16 = 320.283367, but select Rb16 = 330.000000 from the resistor book. This will give an output voltage of 11.678796
+ans = For a resistor error of 3.583762% choose:
+ans = R16 = 15000.000000 and ideally Rb16 = 318.582754, but select Rb16 = 330.000000 from the resistor book. This will give an output voltage of 11.620564
+ans = For a resistor error of 4.133762% choose:
+ans = R16 = 20000.000000 and ideally Rb16 = 316.900105, but select Rb16 = 330.000000 from the resistor book. This will give an output voltage of 11.562332
+ans = For a resistor error of 4.561539% choose:
+ans = R16 = 27000.000000 and ideally Rb16 = 315.603617, but select Rb16 = 330.000000 from the resistor book. This will give an output voltage of 11.517041
+ans = For a resistor error of 4.783762% choose:
+ans = R16 = 33000.000000 and ideally Rb16 = 314.934294, but select Rb16 = 330.000000 from the resistor book. This will give an output voltage of 11.493513
+ans = For a resistor error of 5.016320% choose:
+ans = R16 = 43000.000000 and ideally Rb16 = 314.236874, but select Rb16 = 330.000000 from the resistor book. This will give an output voltage of 11.468890
+ans = For a resistor error of 5.136703% choose:
+ans = R16 = 51000.000000 and ideally Rb16 = 313.877068, but select Rb16 = 330.000000 from the resistor book. This will give an output voltage of 11.456145
+#+end_example
+
+* Testing
+** Performance
+Verify that the output voltage ripple remains within $0.084V$ of $12V$ with loads ranging from $24\Omega$ to $2.4\Omega$ and AC inputs from $20V$ to $32V$.
+ - Lowest load is $24.7\Omega$
+
+If it can do $V_{in,rms} = 20V$ and $R_{load} = 2.4\Omega$ while remaining within $0.084V$, then we will have succeeded.
+
+
+Check if can charge a laptop.
+ - The laptop takes 20V, but we still tried it.
+   - It did not work
+ - A Arduino Uno takes 12V
+   - It did work
+   - Pictures were taken
+     
+ Using $25\Omega$ and $2.2\Omega$
+
+ 
+#+BEGIN_SRC octave :exports none :results output :session Feedback
+clc
+clear
+close all
+
+if exist('OCTAVE_VERSION', 'builtin')
+ set(0, "DefaultLineLineWidth", 2);
+ set(0, "DefaultAxesFontSize", 25);
+ warning('off');
+end
+
+function [V_ripple, V_ripple_percent, V_min, V_max, V_mean] = voltage_data(t, V)
+  V_max = max(V);
+  V_min = min(V);
+  V_ripple = V_max - V_min;
+  V_mean = mean(V);
+  V_ripple_percent = V_ripple/V_mean*100;
+end
+
+data_NL = dlmread('./Data/32RMS_Voltage_output_No_Load.CSV', ',', 1, 0);
+
+t_NL = data_NL(:, 1);
+t_NL = t_NL - t_NL(1);
+V_NL = data_NL(:, 2);
+figure;
+plot(t_NL(1:1e4), V_NL(1:1e4));
+
+[NL_V_ripple, NL_V_ripple_percent, NL_V_min, NL_V_max, NL_V_mean] = voltage_data(t_NL, V_NL);
+sprintf("NL_V_ripple = %f\n", NL_V_ripple)
+sprintf("NL_V_ripple_percent = %f%%\n", NL_V_ripple_percent)
+sprintf("NL_V_min = %f\n", NL_V_min)
+sprintf("NL_V_max = %f\n", NL_V_max)
+sprintf("NL_V_mean = %f\n", NL_V_mean)
+sprintf("\n")
+
+data_22_Ohm = dlmread('./Data/32RMS_Voltage_output_22_Ohm.CSV', ',', 1, 0);
+
+t_22_Ohm = data_22_Ohm(:, 1);
+t_22_Ohm = t_22_Ohm - t_22_Ohm(1);
+V_22_Ohm = data_22_Ohm(:, 2);
+figure;
+plot(t_22_Ohm(1:1e4), V_22_Ohm(1:1e4));
+
+[V_ripple_22_Ohm, V_ripple_percent_22_Ohm, V_min_22_Ohm, V_max_22_Ohm, V_mean_22_Ohm] = voltage_data(t_22_Ohm, V_22_Ohm);
+sprintf("V_ripple_22_Ohm = %f\n", V_ripple_22_Ohm)
+sprintf("V_ripple_percent_22_Ohm = %f%%\n", V_ripple_percent_22_Ohm)
+sprintf("V_min_22_Ohm = %f\n", V_min_22_Ohm)
+sprintf("V_max_22_Ohm = %f\n", V_max_22_Ohm)
+sprintf("V_mean_22_Ohm = %f\n", V_mean_22_Ohm)
+sprintf("\n")
+
+data_2_5_Ohm = dlmread('./Data/32RMS_Voltage_output_2.5_Ohm.CSV', ',', 1, 0);
+
+t_2_5_Ohm = data_2_5_Ohm(:, 1);
+t_2_5_Ohm = t_2_5_Ohm - t_2_5_Ohm(1);
+V_2_5_Ohm = data_2_5_Ohm(:, 2);
+figure;
+plot(t_2_5_Ohm(1:1e4), V_2_5_Ohm(1:1e4));
+
+[V_ripple_2_5_Ohm, V_ripple_percent_2_5_Ohm, V_min_2_5_Ohm, V_max_2_5_Ohm, V_mean_2_5_Ohm] = voltage_data(t_2_5_Ohm, V_2_5_Ohm);
+sprintf("V_ripple_2_5_Ohm = %f\n", V_ripple_2_5_Ohm)
+sprintf("V_ripple_percent_2_5_Ohm = %f%%\n", V_ripple_percent_2_5_Ohm)
+sprintf("V_min_2_5_Ohm = %f\n", V_min_2_5_Ohm)
+sprintf("V_max_2_5_Ohm = %f\n", V_max_2_5_Ohm)
+sprintf("V_mean_2_5_Ohm = %f\n", V_mean_2_5_Ohm)
+sprintf("\n")
+
+data_23_RMS_25_Ohm = dlmread('./Data/23RMS_Voltage_output_25_Ohm.CSV', ',', 1, 0);
+
+t_23_RMS_25_Ohm = data_23_RMS_25_Ohm(:, 1);
+t_23_RMS_25_Ohm = t_23_RMS_25_Ohm - t_23_RMS_25_Ohm(1);
+V_23_RMS_25_Ohm = data_23_RMS_25_Ohm(:, 2);
+figure;
+plot(t_23_RMS_25_Ohm(1:1e4), V_23_RMS_25_Ohm(1:1e4));
+
+[V_ripple_23_RMS_25_Ohm, V_ripple_percent_23_RMS_25_Ohm, V_min_23_RMS_25_Ohm, V_max_23_RMS_25_Ohm, V_mean_23_RMS_25_Ohm] = voltage_data(t_23_RMS_25_Ohm, V_23_RMS_25_Ohm);
+sprintf("V_ripple_23_RMS_25_Ohm = %f\n", V_ripple_23_RMS_25_Ohm)
+sprintf("V_ripple_percent_23_RMS_25_Ohm = %f%%\n", V_ripple_percent_23_RMS_25_Ohm)
+sprintf("V_min_23_RMS_25_Ohm = %f\n", V_min_23_RMS_25_Ohm)
+sprintf("V_max_23_RMS_25_Ohm = %f\n", V_max_23_RMS_25_Ohm)
+sprintf("V_mean_23_RMS_25_Ohm = %f\n", V_mean_23_RMS_25_Ohm)
+sprintf("\n")
+
+data_20_RMS_2_5_Ohm = dlmread('./Data/20RMS_Voltage_output_2.5_Ohm.CSV', ',', 1, 0);
+
+t_20_RMS_2_5_Ohm = data_20_RMS_2_5_Ohm(:, 1);
+t_20_RMS_2_5_Ohm = t_20_RMS_2_5_Ohm - t_20_RMS_2_5_Ohm(1);
+V_20_RMS_2_5_Ohm = data_20_RMS_2_5_Ohm(:, 2);
+figure;
+plot(t_20_RMS_2_5_Ohm(1:130256), V_20_RMS_2_5_Ohm(1:130256));
+
+[V_ripple_20_RMS_2_5_Ohm, V_ripple_percent_20_RMS_2_5_Ohm, V_min_20_RMS_2_5_Ohm, V_max_20_RMS_2_5_Ohm, V_mean_20_RMS_2_5_Ohm] = voltage_data(t_20_RMS_2_5_Ohm, V_20_RMS_2_5_Ohm);
+sprintf("V_ripple_20_RMS_2_5_Ohm = %f\n", V_ripple_20_RMS_2_5_Ohm)
+sprintf("V_ripple_percent_20_RMS_2_5_Ohm = %f%%\n", V_ripple_percent_20_RMS_2_5_Ohm)
+sprintf("V_min_20_RMS_2_5_Ohm = %f\n", V_min_20_RMS_2_5_Ohm)
+sprintf("V_max_20_RMS_2_5_Ohm = %f\n", V_max_20_RMS_2_5_Ohm)
+sprintf("V_mean_20_RMS_2_5_Ohm = %f\n", V_mean_20_RMS_2_5_Ohm)
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+ans = NL_V_ripple = 0.109370
+ans = NL_V_ripple_percent = 0.916438%
+ans = NL_V_min = 11.847260
+ans = NL_V_max = 11.956630
+ans = NL_V_mean = 11.934256
+ans =
+ans = V_ripple_22_Ohm = 0.058600
+ans = V_ripple_percent_22_Ohm = 0.493207%
+ans = V_min_22_Ohm = 11.843350
+ans = V_max_22_Ohm = 11.901950
+ans = V_mean_22_Ohm = 11.881432
+ans =
+ans = V_ripple_2_5_Ohm = 0.293000
+ans = V_ripple_percent_2_5_Ohm = 2.484134%
+ans = V_min_2_5_Ohm = 11.648800
+ans = V_max_2_5_Ohm = 11.941800
+ans = V_mean_2_5_Ohm = 11.794855
+ans =
+ans = V_ripple_23_RMS_25_Ohm = 0.041020
+ans = V_ripple_percent_23_RMS_25_Ohm = 0.344099%
+ans = V_min_23_RMS_25_Ohm = 11.899990
+ans = V_max_23_RMS_25_Ohm = 11.941010
+ans = V_mean_23_RMS_25_Ohm = 11.920997
+ans =
+ans = V_ripple_20_RMS_2_5_Ohm = 10.644500
+ans = V_ripple_percent_20_RMS_2_5_Ohm = 116.908520%
+ans = V_min_20_RMS_2_5_Ohm = 1.258200
+ans = V_max_20_RMS_2_5_Ohm = 11.902700
+ans = V_mean_20_RMS_2_5_Ohm = 9.104982
+#+end_example
+ 
+** Efficiency
+For different input voltages measure the loss at maximum load.
+ - We could not do max load because the resistors were getting too hot
+   - So we are doing min load
+
+\begin{align*}
+P_{in} &= V_{in} I_{in} \\
+P_{out} &= V_{out} I_{out} \\
+\eta &= \frac{P_{out}}{P_{in}}
+\end{align*}
+
+|--------------+----------+----------+-----------+-----------+--------------+--------|
+| $V_{in,rms}$ | $I_{in}$ | $P_{in}$ | $V_{out}$ | $I_{out}$ | $P_{output}$ | $\eta$ |
+|--------------+----------+----------+-----------+-----------+--------------+--------|
+|           32 | 362m     |          |    11.914 | 482m      |              |        |
+|           29 | 396m     |          |    11.914 | 482m      |              |        |
+|           26 | 435m     |          |    11.914 | 482m      |              |        |
+|           23 | 496m     |          |    11.914 | 482m      |              |        |
+|           20 | 548m     |          |    11.916 | 482m      |              |        |
+|--------------+----------+----------+-----------+-----------+--------------+--------|
+
+** Harmonics
+At maximum load ($R_{load} = 2.4\Omega$) and minimum input ($V_{in,rms} = 20V$)
+ - We did it at best operating point
+
+Calculate THD, $I_{1,rms}$ is at $50Hz$ and $I_{rms}$ is all frequencies.
+\begin{align*}
+I_{rms} &= \\
+I_{1,rms} &= \\
+THD &= \sqrt{\left(\frac{I_{rms}}{I_{1,rms}}\right)^2 - 1} 
+\end{align*}
+
+p** Light or No Loading
+Have no-load and take scope shots of the output inductor and capacitors. Explain what is happening.
+
+** Regulation Capability
+Calculate line regulation ([[https://en.wikipedia.org/wiki/Line_regulation]])
+\[\text{Line Regulation}\%=\frac{\Delta V_o}{\Delta V_i\cdot V_o}\cdot 100\]
+
+Input changes in voltage to the input and measure the change in the output for various loads.
+
+
