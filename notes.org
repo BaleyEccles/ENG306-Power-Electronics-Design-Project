@@ -154,6 +154,7 @@ t_NL = t_NL - t_NL(1);
 V_NL = data_NL(:, 2);
 figure;
 plot(t_NL(1:1e4), V_NL(1:1e4));
+title("No Load V_in = 32 VRMS")
 
 [NL_V_ripple, NL_V_ripple_percent, NL_V_min, NL_V_max, NL_V_mean] = voltage_data(t_NL, V_NL);
 sprintf("NL_V_ripple = %f\n", NL_V_ripple)
@@ -170,6 +171,7 @@ t_22_Ohm = t_22_Ohm - t_22_Ohm(1);
 V_22_Ohm = data_22_Ohm(:, 2);
 figure;
 plot(t_22_Ohm(1:1e4), V_22_Ohm(1:1e4));
+title("22 Ohm Load V_in = 32 VRMS")
 
 [V_ripple_22_Ohm, V_ripple_percent_22_Ohm, V_min_22_Ohm, V_max_22_Ohm, V_mean_22_Ohm] = voltage_data(t_22_Ohm, V_22_Ohm);
 sprintf("V_ripple_22_Ohm = %f\n", V_ripple_22_Ohm)
@@ -186,6 +188,8 @@ t_2_5_Ohm = t_2_5_Ohm - t_2_5_Ohm(1);
 V_2_5_Ohm = data_2_5_Ohm(:, 2);
 figure;
 plot(t_2_5_Ohm(1:1e4), V_2_5_Ohm(1:1e4));
+title("2.5 Ohm Load V_in = 32 VRMS")
+
 
 [V_ripple_2_5_Ohm, V_ripple_percent_2_5_Ohm, V_min_2_5_Ohm, V_max_2_5_Ohm, V_mean_2_5_Ohm] = voltage_data(t_2_5_Ohm, V_2_5_Ohm);
 sprintf("V_ripple_2_5_Ohm = %f\n", V_ripple_2_5_Ohm)
@@ -202,6 +206,7 @@ t_23_RMS_25_Ohm = t_23_RMS_25_Ohm - t_23_RMS_25_Ohm(1);
 V_23_RMS_25_Ohm = data_23_RMS_25_Ohm(:, 2);
 figure;
 plot(t_23_RMS_25_Ohm(1:1e4), V_23_RMS_25_Ohm(1:1e4));
+title("25 Ohm Load V_in = 23 VRMS")
 
 [V_ripple_23_RMS_25_Ohm, V_ripple_percent_23_RMS_25_Ohm, V_min_23_RMS_25_Ohm, V_max_23_RMS_25_Ohm, V_mean_23_RMS_25_Ohm] = voltage_data(t_23_RMS_25_Ohm, V_23_RMS_25_Ohm);
 sprintf("V_ripple_23_RMS_25_Ohm = %f\n", V_ripple_23_RMS_25_Ohm)
@@ -218,6 +223,7 @@ t_20_RMS_2_5_Ohm = t_20_RMS_2_5_Ohm - t_20_RMS_2_5_Ohm(1);
 V_20_RMS_2_5_Ohm = data_20_RMS_2_5_Ohm(:, 2);
 figure;
 plot(t_20_RMS_2_5_Ohm(1:130256), V_20_RMS_2_5_Ohm(1:130256));
+title("2.5 Ohm Load V_in = 20 VRMS")
 
 [V_ripple_20_RMS_2_5_Ohm, V_ripple_percent_20_RMS_2_5_Ohm, V_min_20_RMS_2_5_Ohm, V_max_20_RMS_2_5_Ohm, V_mean_20_RMS_2_5_Ohm] = voltage_data(t_20_RMS_2_5_Ohm, V_20_RMS_2_5_Ohm);
 sprintf("V_ripple_20_RMS_2_5_Ohm = %f\n", V_ripple_20_RMS_2_5_Ohm)
@@ -292,7 +298,63 @@ I_{1,rms} &= \\
 THD &= \sqrt{\left(\frac{I_{rms}}{I_{1,rms}}\right)^2 - 1} 
 \end{align*}
 
-p** Light or No Loading
+
+#+BEGIN_SRC octave :exports none :results output :session Feedback
+clc
+clear
+close all
+
+if exist('OCTAVE_VERSION', 'builtin')
+ set(0, "DefaultLineLineWidth", 2);
+ set(0, "DefaultAxesFontSize", 25);
+ warning('off');
+end
+
+data = dlmread('./Data/20RMS_Voltage_output_2.5_Ohm.CSV', ',', 1, 0);
+%data = dlmread('./Data/23RMS_Voltage_output_25_Ohm.CSV', ',', 1, 0);
+%data = dlmread('./Data/32RMS_Voltage_output_2.5_Ohm.CSV', ',', 1, 0);
+t = data(:, 1);
+t = t - t(1);
+V = data(:, 2);
+
+% Downsample
+t = t(1:1:end);
+V = V(1:1:end);
+
+%t = 0:0.00001:0.25;
+%V = cos(2*pi*100*t);
+figure;
+plot(t, V)
+%xlim([0, 1])
+
+% Sample Data
+Fs = 1/(t(2) - t(1)); % Sampling frequency in Hz
+
+% Compute the Fourier Transform
+N = length(V); % Number of points in the signal
+Y = fft(V); % Compute the FFT
+P2 = abs(Y/N); % Two-sided spectrum
+P1 = P2(1:N/2+1); % Single-sided spectrum
+P1(2:end-1) = 2*P1(2:end-1); % Adjust for single-sided spectrum
+
+% Frequency vector
+f = Fs*(0:(N/2))/N;
+
+% Plotting the Fourier Transform
+figure;
+plot(f, P1);
+title('Single-Sided Amplitude Spectrum of V(t)');
+xlabel('Frequency (f) [Hz]');
+ylabel('|P1(f)|');
+xlim([0, 500])
+%ylim([0, 0.002])
+grid on;
+
+#+END_SRC
+
+#+RESULTS:
+
+** Light or No Loading
 Have no-load and take scope shots of the output inductor and capacitors. Explain what is happening.
 
 ** Regulation Capability
