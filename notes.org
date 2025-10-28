@@ -364,3 +364,18 @@ Calculate line regulation ([[https://en.wikipedia.org/wiki/Line_regulation]])
 Input changes in voltage to the input and measure the change in the output for various loads.
 
 
+* From Testing With Waqas
+** High Voltage Low Load (Best case)
+V_dc = 11.92V
+Ripple = 20mV
+Ripple% = 0.2
+** High Voltage High Load (Medium case)
+V_dc = 11.91V
+** Low Voltage High Load (Worst case)
+V_dc = 11.89V
+Third Harmonic = 62.3
+THD = 70.9
+
+Efficiency = 77%
+Pin = 64.32
+Pout = 5244

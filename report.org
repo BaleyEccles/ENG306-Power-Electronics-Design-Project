@@ -1,0 +1,211 @@
+#+title: ENG306 - Power Electronics - Converter Design Report
+#+AUTHOR: Baley Eccles - 652137 and Tyler Robards - 651790
+#+STARTUP: latexpreview
+#+LATEX_HEADER: \usepackage[a4paper, margin=2cm]{geometry}
+#+LATEX_HEADER_EXTRA: \usepackage{minted}
+#+LATEX_HEADER_EXTRA: \usepackage{fontspec}
+#+LATEX_HEADER_EXTRA: \setmonofont{Iosevka}
+#+LATEX_HEADER_EXTRA: \setminted{fontsize=\small, frame=single, breaklines=true}
+#+LATEX_HEADER_EXTRA: \usemintedstyle{emacs}
+#+LATEX_HEADER_EXTRA: \usepackage{float}
+#+LATEX_HEADER_EXTRA: \usepackage[final]{pdfpages}
+#+LATEX_HEADER_EXTRA: \setlength{\parindent}{0pt}
+#+LATEX_HEADER_EXTRA: \setlength{\parskip}{1em}
+
+* Design
+** Specifications
+|---------------------------+-----------|
+| Max AC input (RMS)        |        32 |
+| Min AC input (RMS)        |        20 |
+| Max DC output Current (A) |         5 |
+| Min DC output Current (A) |       0.5 |
+| Voltage Ripple            |      0.7% |
+| DC output                 | 12\pm0.03 |
+|---------------------------+-----------|
+
+** Calculations/Component Selection
+*** Rectifier
+The output of the rectifier must be greater than $12V$ for all load and input voltage conditions for the buck converter stage to work. This means that voltage ripple for $V_m = 32\sqrt{2}V$ must be less than $\Delta V_o = V_m - V_{min} = 32\sqrt{2} - 12 = 33.3V$ and for our lowest voltage of $V_m = 20\sqrt{2}V$ the voltage ripple must be less than $\Delta V_o = 16.3V$.
+
+If we assume that the frequency is going to be $50Hz$ (Australia mains AC frequency), then we can calculate a capacitance for each load of $24\Omega$ and $2.4\Omega$:
+\begin{align*}
+\Delta V_o &= \frac{\pi V_m}{2\pi f R C} \\
+\Rightarrow C &= \frac{\pi V_m}{2\pi f R \Delta V_o} \\
+C_1 &= \frac{\pi\cdot 32\sqrt{2}}{2\cdot \pi\cdot 50\cdot 24\cdot 33.3}  = 566.3\mu F\\
+C_2 &= \frac{\pi\cdot 32\sqrt{2}}{2\cdot \pi\cdot 50\cdot 2.4\cdot 33.3} = 5662.5\mu F\\
+C_3 &= \frac{\pi\cdot 20\sqrt{2}}{2\cdot \pi\cdot 50\cdot 24\cdot 16.3}  = 723.0\mu F\\
+C_4 &= \frac{\pi\cdot 20\sqrt{2}}{2\cdot \pi\cdot 50\cdot 2.4\cdot 16.3} = 7230.1\mu F\\
+\end{align*}
+
+The above calculations do not consider the input of the impedance of the LM5117. It is reasonable to assume that the filtering capacity of the rectifier will be less than this. If it is found that this is not the case a higher order filter could be considered, this would include adding an inductor in series with the filter.
+
+It was decided that a $1000\mu F$ capacitor was going to be the filter. This was expected to provided enough filtering to ensure nominal operation without sacrificing complexity of design a higher order filter.
+
+*** Buck Converter
+The switching frequency was decided to be $f_{SW} = 235kHz$, as the provided design already came loaded with a $22k\Omega$ resistor. If this needed to be changed the following equation could have been used, which was obtained from the data sheet for the LM5117 (:TODO: reference the data sheet).
+
+\[R_T = \frac{5.2\times 10^9}{f_{SW}} - 948\]
+
+"Generally, higher frequency applications are smaller but have higher losses" (:TODO: Reference Data sheet page 25 section 8.3.4). Given that efficiency is not a required metric for our design then going with a higher switching frequency will provide better performance.
+
+Next the output inductor ($L_O$) can be calculated, this is dependent on the inductor ripple current. The data sheet states that between 20% and 40% of the maximum load current is generally good, this means that our inductor ripple current should be between $20%\cdot 5 = 1A$ and $40%\cdot 5 = 2A$. 
+
+\begin{align*}
+L_O &= \frac{V_o}{\Delta I_L\cdot f_{SW}}\left(1 - \frac{V_o}{V_{in\max}}\right) \\
+L_{O,1} &= \frac{12}{1\cdot 235\times10^3}\left(1 - \frac{12}{32\sqrt{2}}\right) = 37.5 \mu H \\
+L_{O,2} &= \frac{12}{2\cdot 235\times10^3}\left(1 - \frac{12}{32\sqrt{2}}\right) = 18.8 \mu H \\
+\end{align*}
+
+A $47\mu H$ inductor was chosen, as this would reduce the burden on the output filtering capacitors, thus leading to a lower output  voltage ripple. This allows us to calculate a new indcutor ripple current as follows:
+
+\begin{align*}
+\Delta I_L &= \frac{V_o}{L_O\cdot f_{SW}}\left(1 - \frac{V_o}{V_{in\max}}\right) \\
+\Delta I_L &= \frac{12}{47\times10^{-6}\cdot 235\times10^3}\left(1 - \frac{12}{32\sqrt{2}}\right) \\
+\Rightarrow \Delta I_L &= 0.8A
+\end{align*}
+
+Next the output capacitance can be found, from the specifications the output ripple must be less than $0.7\%\cdot12 = 84mV$. These equations are taken from the data sheet (:TODO: Reference data sheet page 29 sec 8.3.16).
+
+\begin{align*}
+\Delta V_o &\approx \frac{\Delta I_L}{8\cdot f_{SW}\cdot C_o} \\
+\Rightarrow C_o &\approx \frac{\Delta I_L}{8\cdot f_{SW}\cdot \Delta V_o} \\
+C_o &\approx \frac{0.8}{8\cdot 235\times10^3\cdot 84\times10^{-3}} \\
+C_o &\approx 5\mu F
+\end{align*}
+
+A $515\mu F$ output capacitance was already provided in the design, so adding any extra capacitance was going to be overkill. Given these calculations it is expected that the output ripple will be:
+
+\begin{align*}
+\Delta V_o &\approx \frac{\Delta I_L}{8\cdot f_{SW}\cdot C_o} \\
+\Delta V_o &\approx \frac{0.8}{8\cdot 235\times10^3\cdot 515\times10^{-6}} \\
+\Delta V_o &\approx 826\mu V
+\end{align*}
+
+The input capacitance can be calculated, as we know the input voltage ripple from the rectifier design. The input voltage ripple will be considerable, so adding these capacitors will have a minimal effect.
+
+\begin{align*}
+\Delta V_{in} &= \frac{I_{out}}{4\cdot f_{SW}\cdot C_{in}} \\
+\Rightarrow C_{in} &= \frac{I_{out}}{4\cdot f_{SW}\cdot \Delta V_{in}} \\
+C_{in,1} &= \frac{0.5}{4\cdot 235\times10^3\cdot 33.3} = 16.0nF\\
+C_{in,2} &= \frac{5}{4\cdot 235\times10^3\cdot 33.3} = 159.7nF\\
+C_{in,3} &= \frac{0.5}{4\cdot 235\times10^3\cdot 16.3} = 32.6nF\\
+C_{in,4} &= \frac{5}{4\cdot 235\times10^3\cdot 16.3} = 326.3nF\\
+\end{align*}
+
+Three $3.3\mu F$ capacitors were added in parallel to the input, these would reduce the high frequency noise from the input and rectification.
+
+** Output Voltage
+During testing it was noticed that the output voltage was considerably off of the desired $12V$, it was at about $10.3V$. Looking at the data sheet for the LM5117 it can be seen that the output voltage is defined by the following equation.
+
+\[V_o = 0.8\left(\frac{R_{18} + R_{17}}{Rb_{16}||R_{16}} + 1\right)\]
+
+From the above equation it can be seen that the expected output voltage was going to be $V_o = 10.56V$. This lines up with what was measured during testing, however this is not the voltage that we desire. It was decided that $R_{16}$ and $Rb_{16}$ were going to be replaced with $R_{16} = 5.1k\Omega$ and $Rb_{16} = 330\Omega$ as these were available and would provide the smallest amount of voltage error and allow for the largest amount of resistor error, the code that produced this result can be seen in Appendix A.
+
+* Modelling and Simulation Analysis
+
+* Converter Performance Analysis
+
+* Efficiency and Loss Analysis
+
+* Measured Efficiency
+
+* Harmonics
+
+* Light Or No Loading
+
+* Regulation Capability
+
+\newpage
+* Appendix A - R16 And Rb16 Code
+
+#+BEGIN_SRC octave :exports both :results output :session R16_Rb16
+clc;
+clear;
+close all;
+
+if exist('OCTAVE_VERSION', 'builtin')
+ set(0, "DefaultLineLineWidth", 2);
+ set(0, "DefaultAxesFontSize", 25);
+ warning('off');
+end
+
+R_18 = 22.4;
+R_17 = 4.345e3;
+R_FB1 = 338.7;
+
+V_out = 12;
+
+R_FB2 = R_17 + R_18;
+
+R_FB1 = R_FB2/(V_out/0.8 - 1);
+
+% Avalible resistors
+R_vals = [1e3, 10e3, 1, 1.2, 1.5, 2, 2.7, 3.3, 4.3, 5.1, 6.8, 8.2, 10, 12, 15, 20, 27, 33, 43, 51, 68, 82, 100, 120, 150, 200, 270, 330, 430, 510, 680, 820, 1.2e3, 1.5e3, 2e3, 2.7e3, 3.3e3, 4.3e3, 5.1e3, 6.8e3, 8.2e3, 12e3, 15e3, 20e3, 27e3, 33e3, 43e3, 51e3, 68e3, 82e3, 100e3, 120e3, 150e3, 200e3, 270e3, 330e3, 430e3, 510e3, 680e3, 820e3, 1e6, 2e6];
+
+R16 = R_vals;
+
+Rb16 = 1./(1./R_FB1 - 1./R16);
+
+tol = 2.5/100; % Tolerance of 2.5%
+
+for idx = 1:length(R16)
+  for jdx = 1:length(R_vals)
+    up_bound = R_vals(jdx) + R_vals(jdx)*tol;
+    low_bound = R_vals(jdx) - R_vals(jdx)*tol;
+    if (Rb16(idx) >= low_bound && Rb16(idx) <= up_bound)
+      percent_error = 100*abs(R_vals(jdx) - Rb16(idx))/Rb16(idx);
+      V_out_true = 0.8*(R_FB2/(1/(1/R16(idx) + 1/R_vals(jdx))) + 1);
+      
+      sprintf("For a resistor error of %f%% choose:", percent_error)
+      sprintf("R16 = %.0f and ideally Rb16 = %.3f, but select Rb16 = %.0f from the book.\nThis will give an output voltage of %.3f and 12 - Vo = %.4f", R16(idx), Rb16(idx), R_vals(jdx), V_out_true, 12 - V_out_true)
+      sprintf("\n")
+      
+    end
+  end
+end
+
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+ans = For a resistor error of 2.483762% choose:
+ans = R16 = 10000 and ideally Rb16 = 322.002, but select Rb16 = 330 from the book.
+This will give an output voltage of 11.737 and 12 - Vo = 0.2630
+ans = 
+
+ans = For a resistor error of 2.072306% choose:
+ans = R16 = 510 and ideally Rb16 = 803.352, but select Rb16 = 820 from the book.
+This will give an output voltage of 11.912 and 12 - Vo = 0.0883
+ans = 
+
+ans = For a resistor error of 1.288873% choose:
+ans = R16 = 820 and ideally Rb16 = 503.510, but select Rb16 = 510 from the book.
+This will give an output voltage of 11.912 and 12 - Vo = 0.0883
+ans = 
+
+ans = For a resistor error of 2.006113% choose:
+ans = R16 = 1200 and ideally Rb16 = 421.543, but select Rb16 = 430 from the book.
+This will give an output voltage of 11.837 and 12 - Vo = 0.1630
+ans = 
+
+ans = For a resistor error of 1.890657% choose:
+ans = R16 = 4300 and ideally Rb16 = 336.359, but select Rb16 = 330 from the book.
+This will give an output voltage of 12.200 and 12 - Vo = -0.2002
+ans = 
+
+ans = For a resistor error of 0.686827% choose:
+ans = R16 = 5100 and ideally Rb16 = 332.282, but select Rb16 = 330 from the book.
+This will give an output voltage of 12.073 and 12 - Vo = -0.0727
+ans = 
+
+ans = For a resistor error of 0.930820% choose:
+ans = R16 = 6800 and ideally Rb16 = 326.957, but select Rb16 = 330 from the book.
+This will give an output voltage of 11.901 and 12 - Vo = 0.0986
+ans = 
+
+ans = For a resistor error of 1.759371% choose:
+ans = R16 = 8200 and ideally Rb16 = 324.294, but select Rb16 = 330 from the book.
+This will give an output voltage of 11.814 and 12 - Vo = 0.1863
+ans =
+#+end_example
+
