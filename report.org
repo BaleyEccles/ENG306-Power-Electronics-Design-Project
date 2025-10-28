@@ -95,13 +95,35 @@ C_{in,4} &= \frac{5}{4\cdot 235\times10^3\cdot 16.3} = 326.3nF\\
 Three $3.3\mu F$ capacitors were added in parallel to the input, these would reduce the high frequency noise from the input and rectification.
 
 ** Output Voltage
-During testing it was noticed that the output voltage was considerably off of the desired $12V$, it was at about $10.3V$. Looking at the data sheet for the LM5117 it can be seen that the output voltage is defined by the following equation.
+During testing it was noticed that the output voltage was considerably off of the desired $12V$, it was at about $10.3V$. Looking at the data sheet for the LM5117 it can be seen that the output vonltage is defined by the following equation.
 
 \[V_o = 0.8\left(\frac{R_{18} + R_{17}}{Rb_{16}||R_{16}} + 1\right)\]
 
 From the above equation it can be seen that the expected output voltage was going to be $V_o = 10.56V$. This lines up with what was measured during testing, however this is not the voltage that we desire. It was decided that $R_{16}$ and $Rb_{16}$ were going to be replaced with $R_{16} = 5.1k\Omega$ and $Rb_{16} = 330\Omega$ as these were available and would provide the smallest amount of voltage error and allow for the largest amount of resistor error, the code that produced this result can be seen in Appendix A.
 
 * Modelling and Simulation Analysis
+The design was simulated in PLECS before being built, this allowed for revision of our design. The PLECS model can be seen in Figure \ref{fig:PLECS_SCHEMATIC}, it uses the main component values as described in the component selection section.
+
+The LM5117 does not exist in PLECS so a PID control loop had to be implemented, this control loop will not preform nearly as well as the LM5117 because the LM5117 is specifically designed for this use case, whereas designing the PID for this would take a considerable amount of time.
+
+#+ATTR_LATEX: :placement [H]
+#+CAPTION: PLECS Model \label{fig:PLECS_SCHEMATIC}
+[[./Simulation_Schematic.png]]
+
+The best case can be seen in Figure \ref{fig:PLECS_BEST_CASE}, it has $V_{in} = 32V\ RMS$ and a $24\Omega$ load. It can be seen that the voltage ripple is approximately $0.9V$, this is more than $10$ times the acceptable voltage ripple and is due to the PID being tuned poorly. The code that produced this plot can be seen in Appendix B.
+
+#+ATTR_LATEX: :placement [H]
+#+CAPTION: PLECS Best Case Output Voltage \label{fig:PLECS_BEST_CASE}
+[[./ENG306_Design_Best_Case_Sim.png]]
+
+The worst case can be seen in Figure \ref{fig:PLECS_WORST_CASE}, it has $V_{in} = 20V\ RMS$ and a $2.4\Omega$ load. It can be seen that the voltage ripple is approximately :TODO, this is more than $10$ times the acceptable voltage ripple and is due to the PID being tuned poorly. The code that produced this plot can be seen in Appendix B.
+
+#+ATTR_LATEX: :placement [H]
+#+CAPTION: PLECS Worst Case Output Voltage \label{fig:PLECS_WORST_CASE}
+[[./ENG306_Design_Worst_Case_Sim.png]]
+
+
+The simulation preforms poorly, it does not meet any of the required metrics, however this is expected and is due to the insufficient control loop. According to all the previous calculations the design should meet the required specifications.
 
 * Converter Performance Analysis
 
@@ -208,4 +230,65 @@ ans = R16 = 8200 and ideally Rb16 = 324.294, but select Rb16 = 330 from the book
 This will give an output voltage of 11.814 and 12 - Vo = 0.1863
 ans =
 #+end_example
+
+\newpage
+* Appendix B - PLECS Best Case Code
+
+#+BEGIN_SRC octave :exports code :results output :session BEST_CASE_SIM 
+clc
+clear
+close all
+
+if exist('OCTAVE_VERSION', 'builtin')
+  set(0, "DefaultLineLineWidth", 2);
+  set(0, "DefaultAxesFontSize", 25);
+  warning('off');
+end
+
+data = csvread('Best_Case.csv', 1, 0);
+t = data(:, 1);
+t = t - t(1);
+v = data(:, 2);
+
+figure;
+plot(t, v);
+%xlim([0, 0.25]);
+ylim([11.6, 12.6]);
+grid on;
+title('Best Case Output Voltage vs Time');
+xlabel('Time (s)');
+ylabel('Output Voltage (V)');
+print -dpng 'ENG306_Design_Best_Case_Sim.png'
+#+END_SRC
+
+#+RESULTS:
+
+* Appendix B - PLECS Best Case Code
+
+#+BEGIN_SRC octave :exports code :results output :session BEST_WORST_SIM :eval no
+clc
+clear
+close all
+
+if exist('OCTAVE_VERSION', 'builtin')
+  set(0, "DefaultLineLineWidth", 2);
+  set(0, "DefaultAxesFontSize", 25);
+  warning('off');
+end
+
+data = csvread('Worst_Case.csv', 1, 0);
+t = data(:, 1);
+t = t - t(1);
+v = data(:, 2);
+
+figure;
+plot(t, v);
+xlim([0, 0.25]);
+ylim([11.6, 12.6]);
+grid on;
+title('Worst Case Output Voltage vs Time');
+xlabel('Time (s)');
+ylabel('Output Voltage (V)');
+print -dpng 'ENG306_Design_Worst_Case_Sim.png'
+#+END_SRC
 
