@@ -15,14 +15,15 @@
 #+LATEX_HEADER: \addbibresource{References.bib}
 #+LATEX_HEADER: \DeclareLanguageMapping{english}{english-apa}
 
+\newpage
 * Introduction
-This report outlines the design and performance analysis of a power converter, it consists of a rectifier stage feeding into a buck converter stage. The design of this converter will require analysis into its efficiency, harmonics and regulation capabilities.
+This report outlines the design and performance analysis of a power converter, which consists of a rectifier stage feeding into a buck converter stage. The design of this converter will require analysis into its efficiency, harmonics and regulation capabilities.
 
 The project aims to design a converter capable of handling a maximum AC input of $32VRMS$ and providing a DC output of $12V$ with less than $0.7\%$ voltage ripple. This report details the specifications, calculations, and component selection that informed the design process, including the rectifier and buck converter stages. Furthermore, simulations were conducted using PLECS to validate the design and identify its performance under various load conditions and input voltages.
 
 In addition to the design aspects, this report presents a thorough performance analysis of the constructed converter, evaluating its output voltage regulation, efficiency, and harmonic distortion. The findings highlight both the successes and failures in the design and testing phases, providing valuable insights into the practical implications of power converters. The produced board can be seen in Figure \ref{fig:BOARD}.
 
-#+ATTR_LATEX: :placement [H] :width 10cm :options angle=90
+#+ATTR_LATEX: :placement [H] :options angle=90
 #+CAPTION: Designed Converter Running An Arduino Uno \label{fig:BOARD}
 [[./IMG20251016100928.jpg]]
 
@@ -31,19 +32,19 @@ In addition to the design aspects, this report presents a thorough performance a
 ** Specifications
 #+ATTR_LATEX: :placement [H] :align |c|c|
 #+CAPTION: Converter Specifications \label{tab:SPEC_DATA}
-|---------------------------+-----------|
-| Max AC input (RMS)        |        32 |
-|---------------------------+-----------|
-| Min AC input (RMS)        |        20 |
-|---------------------------+-----------|
-| Max DC output Current (A) |         5 |
-|---------------------------+-----------|
-| Min DC output Current (A) |       0.5 |
-|---------------------------+-----------|
-| Voltage Ripple            |      0.7% |
-|---------------------------+-----------|
-| DC output                 | 12\pm0.03 |
-|---------------------------+-----------|
+|-------------------------------+-----------|
+| Max AC input voltage ($VRMS$) |        32 |
+|-------------------------------+-----------|
+| Min AC input voltage ($VRMS$) |        20 |
+|-------------------------------+-----------|
+| Max DC output current ($A$)   |         5 |
+|-------------------------------+-----------|
+| Min DC output current ($A$)   |       0.5 |
+|-------------------------------+-----------|
+| Voltage ripple                |      0.7% |
+|-------------------------------+-----------|
+| DC output voltage ($V$)       | 12\pm0.03 |
+|-------------------------------+-----------|
 
 ** Calculations And Component Selection
 *** Rectifier
@@ -61,7 +62,7 @@ C_4 &= \frac{\pi\cdot 20\sqrt{2}}{2\cdot \pi\cdot 50\cdot 2.4\cdot 16.3} = 7230.
 
 The above calculations do not consider the input of the impedance of the LM5117. It is reasonable to assume that the filtering capacity of the rectifier will be less than this. If it is found that this is not the case a higher order filter could be considered, this would include adding an inductor in series with the filter.
 
-It was decided that a $1000\mu F$ capacitor was going to be the filter. This was expected to provided enough filtering to ensure nominal operation without sacrificing complexity of design a higher order filter.
+It was decided that a $1000\mu F$ capacitor was going to be used as the filter. This was expected to provided enough filtering to ensure nominal operation without sacrificing complexity of design a higher order filter.
 
 *** Buck Converter
 The switching frequency was decided to be $f_{SW} = 235kHz$, as the provided design already came loaded with a $22k\Omega$ resistor. If this needed to be changed the following equation could have been used, which was obtained from the data sheet for the LM5117 (\cite{LM5117_Datasheet}, p. 15).
@@ -72,7 +73,7 @@ The switching frequency was decided to be $f_{SW} = 235kHz$, as the provided des
 Next the output inductor ($L_O$) can be calculated, this is dependent on the inductor ripple current. The data sheet states that between 20% and 40% of the maximum load current is generally good, this means that our inductor ripple current should be between $20\%\cdot 5 = 1A$ and $40\%\cdot 5 = 2A$. 
 
 \begin{align*}
-L_O &= \frac{V_o}{\Delta I_L\cdot f_{SW}}\left(1 - \frac{V_o}{V_{in\max}}\right) \\
+L_O &= \frac{V_o}{\Delta I_L\cdot f_{SW}}\left(1 - \frac{V_o}{V_{\textrm{in},\max}}\right) \\
 L_{O,1} &= \frac{12}{1\cdot 235\times10^3}\left(1 - \frac{12}{32\sqrt{2}}\right) = 37.5 \mu H \\
 L_{O,2} &= \frac{12}{2\cdot 235\times10^3}\left(1 - \frac{12}{32\sqrt{2}}\right) = 18.8 \mu H \\
 \end{align*}
@@ -80,7 +81,7 @@ L_{O,2} &= \frac{12}{2\cdot 235\times10^3}\left(1 - \frac{12}{32\sqrt{2}}\right)
 A $47\mu H$ inductor was chosen, as this would reduce the burden on the output filtering capacitors, thus leading to a lower output  voltage ripple. This allows us to calculate a new indcutor ripple current as follows:
 
 \begin{align*}
-\Delta I_L &= \frac{V_o}{L_O\cdot f_{SW}}\left(1 - \frac{V_o}{V_{in\max}}\right) \\
+\Delta I_L &= \frac{V_o}{L_O\cdot f_{SW}}\left(1 - \frac{V_o}{V_{\textrm{in},\max}}\right) \\
 \Delta I_L &= \frac{12}{47\times10^{-6}\cdot 235\times10^3}\left(1 - \frac{12}{32\sqrt{2}}\right) \\
 \Rightarrow \Delta I_L &= 0.8A
 \end{align*}
@@ -94,7 +95,7 @@ C_o &\approx \frac{0.8}{8\cdot 235\times10^3\cdot 84\times10^{-3}} \\
 C_o &\approx 5\mu F
 \end{align*}
 
-A $515\mu F$ output capacitance was already provided in the design, so adding any extra capacitance was going to be overkill. Given these calculations it is expected that the output ripple will be:
+A $515\mu F$ output capacitance was already provided in the design, so adding any extra capacitance was going to be overkill. Given these calculations it is expected that the output voltage ripple will be:
 
 \begin{align*}
 \Delta V_o &\approx \frac{\Delta I_L}{8\cdot f_{SW}\cdot C_o} \\
@@ -105,8 +106,8 @@ A $515\mu F$ output capacitance was already provided in the design, so adding an
 The input capacitance can be calculated, as we know the input voltage ripple from the rectifier design. The input voltage ripple will be considerable, so adding these capacitors will have a minimal effect.
 
 \begin{align*}
-\Delta V_{in} &= \frac{I_{out}}{4\cdot f_{SW}\cdot C_{in}} \\
-\Rightarrow C_{in} &= \frac{I_{out}}{4\cdot f_{SW}\cdot \Delta V_{in}} \\
+\Delta V_{\textrm{in}} &= \frac{I_{out}}{4\cdot f_{SW}\cdot C_{in}} \\
+\Rightarrow C_{in} &= \frac{I_{out}}{4\cdot f_{SW}\cdot \Delta V_{\textrm{in}}} \\
 C_{in,1} &= \frac{0.5}{4\cdot 235\times10^3\cdot 33.3} = 16.0nF\\
 C_{in,2} &= \frac{5}{4\cdot 235\times10^3\cdot 33.3} = 159.7nF\\
 C_{in,3} &= \frac{0.5}{4\cdot 235\times10^3\cdot 16.3} = 32.6nF\\
@@ -116,7 +117,7 @@ C_{in,4} &= \frac{5}{4\cdot 235\times10^3\cdot 16.3} = 326.3nF\\
 Three $3.3\mu F$ capacitors were added in parallel to the input, these will reduce the high frequency noise from the input and rectification.
 
 ** Output Voltage
-During testing it was noticed that the output voltage was considerably off of the desired $12V$, it was at about $10.3V$. Looking at the data sheet for the LM5117 it can be seen that the output vonltage is defined by the following equation.
+During testing it was noticed that the output voltage was considerably off of the desired $12V$, it was at about $10.3V$. Looking at the data sheet for the LM5117 it can be seen that the output voltage is defined by the following equation.
 
 \[V_o = 0.8\left(\frac{R_{18} + R_{17}}{Rb_{16}||R_{16}} + 1\right)\]
 
@@ -125,19 +126,19 @@ From the above equation it can be seen that the expected output voltage was goin
 * Modelling And Simulation Analysis
 The design was simulated in PLECS before being built, this allowed for revision of our design. The PLECS model can be seen in Figure \ref{fig:PLECS_SCHEMATIC}, it uses the main component values as described in the component selection section.
 
-The LM5117 does not exist in PLECS so a PID control loop had to be implemented, this control loop will not preform nearly as well as the LM5117 because the LM5117 is specifically designed for this use case, whereas designing the PID for this would take a considerable amount of time.
+The LM5117 does not exist in PLECS so a PID control loop had to be implemented, this control loop will not perform nearly as well as the LM5117 because the LM5117 is specifically designed for this use case, whereas designing the PID for this would take a considerable amount of time.
 
 #+ATTR_LATEX: :placement [H]
 #+CAPTION: PLECS Model \label{fig:PLECS_SCHEMATIC}
 [[./Simulation_Schematic.png]]
 
-The best case can be seen in Figure \ref{fig:PLECS_BEST_CASE}, it has $V_{in} = 32V\ RMS$ and a $24\Omega$ load. It can be seen that the voltage ripple is approximately $0.5V$, this is more than the acceptable voltage ripple and is due to the PID being tuned poorly. The code that produced this plot can be seen in Appendix B.
+The best case can be seen in Figure \ref{fig:PLECS_BEST_CASE}, it has $V_{\textrm{in}} = 32V\ RMS$ and a $24\Omega$ load. It can be seen that the voltage ripple is approximately $0.5V$, this is more than the acceptable voltage ripple and is due to the PID being tuned poorly. The code that produced this plot can be seen in Appendix B.
 
 #+ATTR_LATEX: :placement [H]
 #+CAPTION: PLECS Best Case Output Voltage \label{fig:PLECS_BEST_CASE}
 [[./ENG306_Design_Best_Case_Sim.png]]
 
-The worst case can be seen in Figure \ref{fig:PLECS_WORST_CASE}, it has $V_{in} = 20V\ RMS$ and a $2.4\Omega$ load. It can be seen that the voltage ripple is approximately $7V$, once again this is more than the acceptable voltage ripple and is due to the PID. The code that produced this plot can be seen in Appendix B.
+The worst case can be seen in Figure \ref{fig:PLECS_WORST_CASE}, it has $V_{\textrm{in}} = 20V\ RMS$ and a $2.4\Omega$ load. It can be seen that the voltage ripple is approximately $7V$, once again this is more than the acceptable voltage ripple and is due to the PID. The code that produced this plot can be seen in Appendix B.
 
 #+ATTR_LATEX: :placement [H]
 #+CAPTION: PLECS Worst Case Output Voltage \label{fig:PLECS_WORST_CASE}
@@ -149,28 +150,28 @@ To verify that the LM5117 will run the voltage at the input to the buck converte
 #+CAPTION: PLECS Rectifier Output Voltage \label{fig:PLECS_RECTIFIER}
 [[./ENG306_Design_Rectifier_Output_Sim.png]]
 
-The simulation preforms poorly, it does not meet any of the required metrics, however this is expected and is due to the insufficient control loop. According to all the previous calculations the design should meet the required specifications.
+The simulation performs poorly, it does not meet any of the required metrics, however this is expected and is due to the insufficient control loop. According to all the previous calculations the design should meet the required specifications.
 
 * Converter Performance Analysis
 The following table (Table \ref{tab:PREFORMANCE_DATA}) describes the performance of the built converter for the required metrics. The code that produced this table and the figures in this section can be seen in Appendix C.
 
 #+ATTR_LATEX: :placement [H] :align |c|c|c|c|c|c|c|
 #+CAPTION: Converter Performance At Various Conditions \label{tab:PREFORMANCE_DATA}
-|----------------+-----------------+-------------+----------+-----------+-----------+------------|
-| $V_{in}$ RMS (V) | Load ($\Omega$) | Ripple (mV) | Ripple % | V Max (V) | V Min (V) | V mean (V) |
-|----------------+-----------------+-------------+----------+-----------+-----------+------------|
-|             32 |               0 |       25.40 |    0.213 |     11.95 |     11.92 |      11.93 |
-|----------------+-----------------+-------------+----------+-----------+-----------+------------|
-|             32 |              22 |       35.15 |    0.295 |     11.90 |     11.86 |      11.88 |
-|----------------+-----------------+-------------+----------+-----------+-----------+------------|
-|             32 |             2.5 |      293.00 |    2.484 |     11.94 |     11.65 |      11.79 |
-|----------------+-----------------+-------------+----------+-----------+-----------+------------|
-|             23 |              25 |       41.02 |    0.344 |     11.94 |     11.90 |      11.92 |
-|----------------+-----------------+-------------+----------+-----------+-----------+------------|
-|             20 |             2.5 |    10644.50 |  116.908 |     11.90 |      1.26 |       9.10 |
-|----------------+-----------------+-------------+----------+-----------+-----------+------------|
+|--------------------+-----------------+---------------+----------+-------------+-------------+--------------|
+| $V_{\textrm{in}}$ RMS ($V$) | Load ($\Omega$) | Ripple ($mV$) | Ripple % | $V_{\max}$ ($V$) | $V_{\max}$ ($V$) | $V_{\textrm{mean}}$ ($V$) |
+|--------------------+-----------------+---------------+----------+-------------+-------------+--------------|
+|                 32 |               0 |         25.40 |    0.213 |       11.95 |       11.92 |        11.93 |
+|--------------------+-----------------+---------------+----------+-------------+-------------+--------------|
+|                 32 |              22 |         35.15 |    0.295 |       11.90 |       11.86 |        11.88 |
+|--------------------+-----------------+---------------+----------+-------------+-------------+--------------|
+|                 32 |             2.5 |        293.00 |    2.484 |       11.94 |       11.65 |        11.79 |
+|--------------------+-----------------+---------------+----------+-------------+-------------+--------------|
+|                 23 |              25 |         41.02 |    0.344 |       11.94 |       11.90 |        11.92 |
+|--------------------+-----------------+---------------+----------+-------------+-------------+--------------|
+|                 20 |             2.5 |      10644.50 |  116.908 |       11.90 |        1.26 |         9.10 |
+|--------------------+-----------------+---------------+----------+-------------+-------------+--------------|
 
-From the last row in Table \ref{tab:PREFORMANCE_DATA} it can clearly be seen that the required metrics were not fully met, the plot of the acquired for this can be seen in Figure \ref{fig:2_5_20VRMS}. For this specific case the input voltage was $20VRMS$ and the load was $2.5\Omega$, this is the worst possible case for the converter. It preformed this poorly because the LM5117 was supplied with less than $12V$, this caused the converter to stop working for various parts of the cycles which can be seen in Figure \ref{fig:2_5_20VRMS}. This could have been fixed by improving the rectifier output filter, as this provides the voltage to the LM5117.
+From the last row in Table \ref{tab:PREFORMANCE_DATA} it can clearly be seen that the required metrics were not fully met, the plot of the acquired data for this can be seen in Figure \ref{fig:2_5_20VRMS}. For this specific case the input voltage was $20VRMS$ and the load was $2.5\Omega$, this is the worst possible case for the converter. It preformed this poorly because the LM5117 was supplied with less than $12V$, this caused the converter to stop working for various parts of the cycles which can be seen in Figure \ref{fig:2_5_20VRMS}. This could have been fixed by improving the rectifier output filter, as this provides the voltage to the LM5117.
 
 #+ATTR_LATEX: :placement [H]
 #+CAPTION: $2.5\Omega$ Load With $20VRMS$ Input Voltage Output Voltage Plot \label{fig:2_5_20VRMS}
@@ -182,7 +183,7 @@ A more typical voltage plot can be seen in Figure \ref{fig:22_32VRMS}, it has a 
 #+CAPTION: $22\Omega$ Load With $32VRMS$ Input Voltage Output Voltage Plot \label{fig:22_32VRMS}
 [[./ENG306_Design_22_Ohm_Load_V_in_32_VRMS.png]]
 
-During testing the converter was tested on a laptop and an Arduino Uno. The converter was able to power the Arduino UNO, it did so with very little effort, this cane be seen in Figure \ref{fig:BOARD}. However, the laptop could not be powered, this was due to the laptop requiring $20V$, not $12V$. If a laptop required $12V$ was available it is believed that the converter would have been able to power it.
+During testing the converter was tested on a laptop and an Arduino Uno. The converter was able to power the Arduino Uno, it did so with very little effort, this can be seen in Figure \ref{fig:BOARD}. However, the laptop could not be powered, this was due to the laptop requiring $20V$, not $12V$. If a laptop required $12V$ was available it is believed that the converter would have been able to power it.
 
 * Efficiency Analysis
 Because the design uses a high switching frequency it is expected that the efficiency will be relatively low. A higher frequency causes the switches to activate and deactivate more often, leading to more losses (\cite{LM5117_Datasheet}, p. 25).
@@ -231,7 +232,7 @@ Table \ref{tab:EFFICENCY_DATA} shows the efficiency of the converter for various
 #+ATTR_LATEX: :placement [H] :align |c|c|c|c|c|c|c|
 #+CAPTION: Efficiency Data For Various Input Voltages With A Load of $25\Omega$ \label{tab:EFFICENCY_DATA}
 |------------------+---------------+--------------+---------------+----------------+------------------+----------------|
-| $V_{in,rms}$ (V) | $I_{in}$ (mA) | $P_{in}$ (W) | $V_{out}$ (V) | $I_{out}$ (mA) | $P_{out}$ (W) | Efficiency (%) |
+| $V_{in,rms}$ ($V$) | $I_{in}$ ($mA$) | $P_{in}$ ($W$) | $V_{out}$ ($V$) | $I_{out}$ ($mA$) | $P_{out}$ ($W$) | Efficiency (%) |
 |------------------+---------------+--------------+---------------+----------------+------------------+----------------|
 |               32 |           256 |         8.19 |        11.914 |            482 |            5.742 |           70.1 |
 |------------------+---------------+--------------+---------------+----------------+------------------+----------------|
@@ -253,7 +254,7 @@ The plot in Figure \ref{fig:EFF} (code seen in Appendix E) relates the input vol
 The power analyser was used with a $25VRMS$ input voltage and a $2.4\Omega$ load, this gave $P_{in} = 64.32W$ and $P_{out} = 52.44$, which gives an efficiency of $82\%$. This and the previous data shows that the efficiency of the converter is highly dependent on the load and input voltage, for lower loads and input voltages the converter is more efficient.
 
 * Harmonics
-From Figure \ref{fig:HARMONICS} it can be seen that the harmonics have a general decreasing trend which is to be expected. The second harmonic has a larger magnitude than the fundamental, this is just an artefact of the data collected. The code that produced this plot can be seen in Appendix D.
+From Figure \ref{fig:HARMONICS} it can be seen that the harmonics have a general decreasing trend which is to be expected. The second harmonic has a larger magnitude than the fundamental; this is just an artefact of the data collected. The code that produced this plot can be seen in Appendix D.
 
 #+ATTR_LATEX: :placement [H]
 #+CAPTION: $2.5\Omega$ Load With $20VRMS$ Input Voltage Fourier Transform \label{fig:HARMONICS}
@@ -269,7 +270,7 @@ THD &= 0.406 = 40.6\%
 
 
 * No Load Analysis
-For no load the inductor voltage can be seen in Figure \ref{fig:INDUCTOR}, it shows the inductor voltage over time. Voltage peaks occur at equal intervals at a rate of $f = \frac{1}{4.5\times10^{-6}} \approx 235kHz$ which is the switching frequency, so every time the LM5117 switches the MOSFET the inductors voltage peaks. This is because the indcutor encounters a large change in current, this can be confirmed by looking at the inductor equation: $v = L \frac{di}{dt}$.
+For no load the inductor voltage can be seen in Figure \ref{fig:INDUCTOR}, it shows the inductor voltage over time. Voltage peaks occur at equal intervals at a rate of $f = \frac{1}{4.5\times10^{-6}} \approx 235kHz$ which is the switching frequency, so every time the LM5117 switches the MOSFET the inductors voltage peaks. This is because the indcutor encounters a large change in current, this can be confirmed by looking at the equation for the inductor: $v = L \frac{di}{dt}$.
 
 #+ATTR_LATEX: :placement [H]
 #+CAPTION: No Load Inductor Voltage \label{fig:INDUCTOR}
@@ -285,7 +286,7 @@ LR &= \frac{11.93 - 11.88}{11.88} \\
 LR &= 0.421\%
 \end{align*}
 
-Likewise, the line regulation can be calculated using $LR = \frac{V_{HL} - V_{LL}}{V_{LL}}$, where $V_{HL}$ is the voltage at high line voltage and $V_{LL}$ is the voltage at low line voltage (\cite{Load_Regulation}). Once again, this can be calculated using the data in Table \ref{tab:PREFORMANCE_DATA} and data collected from power analysis, it is seen in the following calculations.
+Likewise, the line regulation can be calculated using $LR = \frac{V_{HL} - V_{LL}}{V_{LL}}$, where $V_{HL}$ is the voltage at high line voltage and $V_{LL}$ is the voltage at low line voltage (\cite{Load_Regulation}). Once again, this can be calculated using the data in Table \ref{tab:PREFORMANCE_DATA} and data collected from power analysis, as shown in the following calculations.
 
 \begin{align*}
 LR &= \frac{V_{HL} - V_{LL}}{V_{LL}} \\
@@ -296,7 +297,7 @@ LR &= 0.168\%
 This shows very good regulation capabilities, the converter is capable of maintaining a close to nominal voltage for maximum load and minimum line voltage. In other words, the converter output voltage changes very little when changing the loading condition and input voltages.
 
 * Conclusion
-In this report, we successfully designed and analysed a power converter capable of providing a regulated DC output of 12V with minimal voltage ripple. Challenges related to output voltage regulation were faced, the converter preformed well under various load conditions, as validated by both PLECS simulations and real-world testing.
+In this report, we successfully designed and analysed a power converter capable of providing a regulated DC output of 12V with minimal voltage ripple. Challenges related to output voltage regulation were faced, the converter performed well under various load conditions, as validated by both PLECS simulations and real-world testing.
 
 The converter's performance metrics were met under most circumstances; the output voltage ripple met acceptable limits under specific load conditions, significant deviations occurred at high loads, mainly due to an inadequate rectifier filter. The implemented buck converter efficiently regulated output voltage with a ripple of less than 0.3%, showcasing strong load and line regulation capabilities. However, the overall efficiency of the converter was moderate, primarily impacted by high switching frequencies and losses associated with the rectifier.
 
@@ -319,22 +320,17 @@ end
 R_18 = 22.4;
 R_17 = 4.345e3;
 R_FB1 = 338.7;
-
 V_out = 12;
 
 R_FB2 = R_17 + R_18;
-
 R_FB1 = R_FB2/(V_out/0.8 - 1);
 
 % Avalible resistors
 R_vals = [1e3, 10e3, 1, 1.2, 1.5, 2, 2.7, 3.3, 4.3, 5.1, 6.8, 8.2, 10, 12, 15, 20, 27, 33, 43, 51, 68, 82, 100, 120, 150, 200, 270, 330, 430, 510, 680, 820, 1.2e3, 1.5e3, 2e3, 2.7e3, 3.3e3, 4.3e3, 5.1e3, 6.8e3, 8.2e3, 12e3, 15e3, 20e3, 27e3, 33e3, 43e3, 51e3, 68e3, 82e3, 100e3, 120e3, 150e3, 200e3, 270e3, 330e3, 430e3, 510e3, 680e3, 820e3, 1e6, 2e6];
-
 R16 = R_vals;
-
 Rb16 = 1./(1./R_FB1 - 1./R16);
 
 tol = 2.5/100; % Tolerance of 2.5%
-
 for idx = 1:length(R16)
   for jdx = 1:length(R_vals)
     up_bound = R_vals(jdx) + R_vals(jdx)*tol;
@@ -350,7 +346,6 @@ for idx = 1:length(R16)
     end
   end
 end
-
 #+END_SRC
 
 #+RESULTS:
@@ -488,7 +483,6 @@ function [V_ripple, V_ripple_percent, V_min, V_max, V_mean] = voltage_data(t, V)
   V_ripple = V_max - V_min;
   V_mean = mean(V);
   V_ripple_percent = V_ripple/V_mean*100;
-
 end
 
 data_NL = dlmread('./Data/32RMS_Voltage_output_No_Load.CSV', ',', 1, 0);
@@ -498,7 +492,7 @@ t_NL = t_NL - t_NL(1);
 V_NL = data_NL(:, 2);
 figure;
 plot(t_NL(1:1e4), V_NL(1:1e4));
-title("No Load V_{in} = 32 VRMS")
+title("No Load V_{\textrm{in}} = 32 VRMS")
 print -dpng 'ENG306_Design_No_Load_V_in_32_VRMS.png'
 
 [NL_V_ripple, NL_V_ripple_percent, NL_V_min, NL_V_max, NL_V_mean] = voltage_data(t_NL, V_NL);
@@ -516,7 +510,7 @@ t_22_Ohm = t_22_Ohm - t_22_Ohm(1);
 V_22_Ohm = data_22_Ohm(:, 2);
 figure;
 plot(t_22_Ohm(1:1e4), V_22_Ohm(1:1e4));
-title("22 Ohm Load V_{in} = 32 VRMS")
+title("22 Ohm Load V_{\textrm{in}} = 32 VRMS")
 print -dpng 'ENG306_Design_22_Ohm_Load_V_in_32_VRMS.png'
 
 [V_ripple_22_Ohm, V_ripple_percent_22_Ohm, V_min_22_Ohm, V_max_22_Ohm, V_mean_22_Ohm] = voltage_data(t_22_Ohm, V_22_Ohm);
@@ -534,9 +528,8 @@ t_2_5_Ohm = t_2_5_Ohm - t_2_5_Ohm(1);
 V_2_5_Ohm = data_2_5_Ohm(:, 2);
 figure;
 plot(t_2_5_Ohm(1:1e4), V_2_5_Ohm(1:1e4));
-title("2.5 Ohm Load V_{in} = 32 VRMS")
+title("2.5 Ohm Load V_{\textrm{in}} = 32 VRMS")
 print -dpng 'ENG306_Design_2.5_Ohm_Load_V_in_32_VRMS.png'
-
 
 [V_ripple_2_5_Ohm, V_ripple_percent_2_5_Ohm, V_min_2_5_Ohm, V_max_2_5_Ohm, V_mean_2_5_Ohm] = voltage_data(t_2_5_Ohm, V_2_5_Ohm);
 sprintf("V_ripple_2_5_Ohm = %fmV\n", V_ripple_2_5_Ohm*1e3)
@@ -553,7 +546,7 @@ t_23_RMS_25_Ohm = t_23_RMS_25_Ohm - t_23_RMS_25_Ohm(1);
 V_23_RMS_25_Ohm = data_23_RMS_25_Ohm(:, 2);
 figure;
 plot(t_23_RMS_25_Ohm(1:1e4), V_23_RMS_25_Ohm(1:1e4));
-title("25 Ohm Load V_{in} = 23 VRMS")
+title("25 Ohm Load V_{\textrm{in}} = 23 VRMS")
 print -dpng 'ENG306_Design_25_Ohm_Load_V_in_23_VRMS.png'
 
 [V_ripple_23_RMS_25_Ohm, V_ripple_percent_23_RMS_25_Ohm, V_min_23_RMS_25_Ohm, V_max_23_RMS_25_Ohm, V_mean_23_RMS_25_Ohm] = voltage_data(t_23_RMS_25_Ohm, V_23_RMS_25_Ohm);
@@ -571,7 +564,7 @@ t_20_RMS_2_5_Ohm = t_20_RMS_2_5_Ohm - t_20_RMS_2_5_Ohm(1);
 V_20_RMS_2_5_Ohm = data_20_RMS_2_5_Ohm(:, 2);
 figure;
 plot(t_20_RMS_2_5_Ohm(1:130256), V_20_RMS_2_5_Ohm(1:130256));
-title("2.5 Ohm Load V_{in} = 20 VRMS")
+title("2.5 Ohm Load V_{\textrm{in}} = 20 VRMS")
 print -dpng 'ENG306_Design_2.5_Ohm_Load_V_in_20_VRMS.png'
 
 [V_ripple_20_RMS_2_5_Ohm, V_ripple_percent_20_RMS_2_5_Ohm, V_min_20_RMS_2_5_Ohm, V_max_20_RMS_2_5_Ohm, V_mean_20_RMS_2_5_Ohm] = voltage_data(t_20_RMS_2_5_Ohm, V_20_RMS_2_5_Ohm);
@@ -634,9 +627,7 @@ t = data(:, 1);
 t = t - t(1);
 V = data(:, 2);
 
-
 Fs = 1/(t(2) - t(1));
-
 N = length(V);
 Y = fft(V);
 P2 = abs(Y/N);
@@ -644,7 +635,6 @@ P1 = P2(1:N/2+1);
 P1(2:end-1) = 2*P1(2:end-1);
 M = P1(3);
 P1 = P1./M;
-
 f = Fs*(0:(N/2))/N;
 
 figure;
@@ -656,7 +646,6 @@ xlim([0, 500])
 ylim([0, 3])
 grid on;
 print -dpng 'ENG306_Design_Harmonics.png'
-
 #+END_SRC
 
 #+RESULTS:
